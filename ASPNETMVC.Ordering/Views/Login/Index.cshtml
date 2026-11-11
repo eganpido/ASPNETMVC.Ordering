@@ -1,0 +1,117 @@
+﻿@{
+    ViewBag.Title = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var terminals = ViewBag.Terminals as IEnumerable<dynamic>;
+}
+<div class="container d-flex align-items-center justify-content-center px-3" style="min-height: 80vh;">
+    <div class="row w-100 justify-content-center">
+        <!-- Gi-adjust ang responsive column sizes aron dako-dako ang espasyo sa tablet portrait -->
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
+
+            <!-- Login Card Container -->
+            <div class="card shadow-lg border-0" style="border-radius: 20px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+                <div class="card-body p-4 p-sm-5">
+
+                    <!-- Header Logo / Title Area -->
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center shadow-sm mb-3 rounded-circle" style="width: 70px; height: 70px; background: rgba(0, 138, 178, 0.1);">
+                            <img src="~/Content/Images/liteclerklogoimg.png" alt="Liteclerk Icon" style="width: 40px; height: 40px; object-fit: contain;" />
+                        </div>
+                        <p class="text-muted small">Sign in to access to start the order</p>
+                    </div>
+
+                    <!-- Using Html.BeginForm for ASP.NET MVC Controller Action -->
+                    @using (Html.BeginForm("Login", "Login", FormMethod.Post, new { @class = "needs-validation", role = "form" }))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <!-- Validation Summary if needed -->
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger small mb-3" })
+
+                        <!-- Terminal Selection Field -->
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">TERMINAL</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
+                                    <i class="fa-solid fa-desktop text-muted"></i>
+                                </span>
+                                <select name="TerminalId" class="form-select bg-light border-start-0" required style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none;">
+                                    <option value="" disabled selected>-- Select Terminal --</option>
+                                    @if (terminals != null)
+                                    {
+                                        foreach (var term in terminals)
+                                        {
+                                            <option value="@term.Id">@term.Terminal</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Username / Cashier ID Field -->
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">USERNAME</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
+                                    <i class="fa-solid fa-user text-muted"></i>
+                                </span>
+                                <input type="text" name="Username" class="form-control bg-light border-start-0" placeholder="e.g. staff01" required autofocus style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none;" />
+                            </div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label class="form-label text-muted small fw-bold">PASSWORD</label>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
+                                    <i class="fa-solid fa-lock text-muted"></i>
+                                </span>
+                                <input type="password" name="Password" class="form-control bg-light border-start-0" placeholder="••••••••" required style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none;" />
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn text-white fw-bold py-3 shadow-sm" style="background: linear-gradient(135deg, #008AB2 0%, #006080 100%); border-radius: 12px; transition: all 0.2s ease-in-out;">
+                                <i class="fa-solid fa-right-to-bracket me-2"></i> Sign-in to Terminal
+                            </button>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-light">
+                        <!-- Back to Home Link -->
+                        <a href="@Url.Action("Index", "Home")" class="text-decoration-none small fw-semibold back-home-link d-inline-flex align-items-center" style="font-size: 0.75rem; color: #dc3545;">
+                            <span class="transition-icon me-1">&larr;</span> Back to Home
+                        </a>
+
+                        <!-- DB Status Connected Badge -->
+                        <div class="d-flex align-items-center">
+                            <span class="db-badge shadow-sm px-3 py-1.5 rounded-pill text-success" style="background-color: rgba(115, 194, 62, 0.12); font-weight: 600; font-size: 0.75rem;">
+                                <i class="fa-solid fa-circle-check me-2"></i> DB Status : Connected
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Extra styling adjustment for button hover & select focus -->
+<style>
+    .btn:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+    }
+
+    .form-control:focus, .form-select:focus {
+        background-color: #ffffff !important;
+        border-color: var(--pos-blue, #008AB2) !important;
+        box-shadow: 0 0 0 3px rgba(0, 138, 178, 0.15) !important;
+    }
+</style>

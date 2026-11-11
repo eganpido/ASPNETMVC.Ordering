@@ -1,0 +1,318 @@
+﻿@{
+    ViewBag.Title = "Order Taking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var table = ViewBag.Table as dynamic;
+    var itemGroups = ViewBag.ItemGroups as IEnumerable<dynamic>;
+    var itemGroupItems = ViewBag.ItemGroupItems as IEnumerable<dynamic>;
+    var items = ViewBag.Items as IEnumerable<dynamic>;
+}
+
+<div class="container-fluid py-3 px-4" style="background-color: #f8fafc; min-height: 90vh;">
+    <!-- Header Section -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-3 border-bottom bg-white p-3 rounded-4 shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+            <a href="@Url.Action("Index", "Order")" class="btn btn-light btn-sm rounded-circle shadow-sm border text-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; transition: all 0.2s;">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-extrabold text-dark mb-0" style="letter-spacing: -0.5px;">
+                    Table: <span style="color: #008AB2;">@table.TableCode</span>
+                </h4>
+                <span class="badge rounded-pill px-2.5 py-1 text-success" style="background-color: rgba(115, 194, 62, 0.12); font-size: 0.7rem; font-weight: 700;">
+                    <i class="fa-solid fa-circle fa-2xs me-1"></i> Active Ordering Session
+                </span>
+            </div>
+        </div>
+
+        <!-- Live Clean Clock (Time Only, No Long Date) -->
+        <div class="d-flex align-items-center">
+            <div class="px-3 py-1.5 bg-light rounded-pill border shadow-sm d-flex align-items-center">
+                <i class="fa-regular fa-clock me-2" style="color: #008AB2;"></i>
+                <span id="liveDateTime" class="fw-bold text-dark" style="font-size: 0.85rem; letter-spacing: 0.5px;">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main POS Grid Container (Split Layout) -->
+    <div class="row g-3">
+
+        <!-- LEFT & CENTER: Item Groups & Menu Items Catalog (Col 8/9) -->
+        <div class="col-lg-8 col-xl-9">
+
+            <!-- Item Group Filter Pills (Modern & Scrollable) -->
+            <div class="mb-3 overflow-auto pb-2" style="white-space: nowrap;">
+                <button type="button" class="btn group-filter-btn active px-4 py-2 rounded-pill fw-semibold shadow-sm me-2" data-groupid="all" style="background-color: #008AB2; color: white; border: none; font-size: 0.9rem; transition: all 0.2s;">
+                    <i class="fa-solid fa-border-all me-1"></i> All Items
+                </button>
+
+                @if (itemGroups != null)
+                {
+                    foreach (var group in itemGroups)
+                    {
+                        <button type="button" class="btn group-filter-btn px-4 py-2 rounded-pill fw-semibold shadow-sm me-2 bg-white text-dark border" data-groupid="@group.Id" style="transition: all 0.2s; font-size: 0.9rem;">
+                            @group.ItemGroup
+                        </button>
+                    }
+                }
+            </div>
+
+            <!-- Menu Items Grid -->
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-xxl-4 g-3" id="menuItemsContainer" style="max-height: 75vh; overflow-y: auto; padding-right: 4px;">
+                @if (items != null && items.Any())
+                {
+                    foreach (var item in items)
+                    {
+                        var groupMapping = itemGroupItems != null ? itemGroupItems.FirstOrDefault(x => x.ItemId == item.Id) : null;
+                        var groupId = groupMapping != null ? groupMapping.ItemGroupId : 0;
+
+                        <div class="col menu-item-card" data-groupid="@groupId">
+                            <div class="card h-100 shadow-sm border-0 menu-card rounded-4 p-3 text-center d-flex flex-column justify-content-between bg-white" style="cursor: pointer; transition: all 0.2s ease-in-out;">
+                                <div>
+                                    <div class="mx-auto rounded-3 d-flex align-items-center justify-content-center mb-3 shadow-inner" style="width: 65px; height: 65px; background: rgba(0, 138, 178, 0.08);">
+                                        <i class="fa-solid fa-utensils" style="color: #008AB2; font-size: 1.25rem;"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.9rem;" title="@item.Alias">@item.Alias</h6>
+                                    <p class="mb-0 fw-bold" style="color: #73C23E !important; font-size: 0.85rem;">₱ @item.Price.ToString("N2")</p>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-sm w-100 fw-bold rounded-pill text-white shadow-sm add-to-cart-btn py-1.5" style="background: linear-gradient(135deg, #008AB2 0%, #006080 100%); font-size: 0.8rem;" data-id="@item.Id" data-name="@item.Alias" data-price="@item.Price">
+                                        <i class="fa-solid fa-plus me-1"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center py-5">
+                        <div class="p-5 bg-white rounded-4 shadow-sm border">
+                            <i class="fa-solid fa-plate-wheat fa-3x text-muted mb-3"></i>
+                            <h5 class="fw-bold text-dark">No Menu Items Found</h5>
+                            <p class="text-muted small mb-0">Palihug i-add ang imong mga menu items sa database.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR: Active Order Cart & Summary (Col 4/3) -->
+        <div class="col-lg-4 col-xl-3">
+            <div class="card shadow-sm border-0 rounded-4 bg-white d-flex flex-column" style="height: 82vh;">
+                <!-- Cart Header -->
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white rounded-top-4">
+                    <h5 class="fw-bold text-dark mb-0" style="font-size: 1rem;">
+                        <i class="fa-solid fa-cart-shopping me-2" style="color: #008AB2;"></i> Current Order
+                    </h5>
+                    <span class="badge bg-light text-dark fw-bold border px-2.5 py-1" id="cartCountBadge" style="font-size: 0.75rem;">0 items</span>
+                </div>
+
+                <!-- Cart Items List (Scrollable) -->
+                <div class="card-body p-3 flex-grow-1 overflow-auto" id="cartItemsList" style="max-height: 48vh;">
+                    <div class="text-center text-muted py-5 my-auto" id="emptyCartState">
+                        <i class="fa-solid fa-basket-shopping fa-3x mb-2 text-black-50 opacity-50"></i>
+                        <p class="small mb-0 text-muted">No items added yet.<br>Click a menu item to begin.</p>
+                    </div>
+                </div>
+
+                <!-- Cart Footer & Totals -->
+                <div class="p-3 border-top bg-light rounded-bottom-4">
+                    <div class="d-flex justify-content-between mb-1 text-muted small" style="font-size: 0.85rem;">
+                        <span>Subtotal:</span>
+                        <span class="fw-bold text-dark" id="cartSubtotal">₱ 0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 text-muted small" style="font-size: 0.85rem;">
+                        <span>Table Reference:</span>
+                        <strong class="text-dark">#@table.Id</strong>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between mb-3 align-items-center">
+                        <span class="fw-bold text-dark">Total Amount:</span>
+                        <strong class="fs-4 text-success" id="cartTotal">₱ 0.00</strong>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn text-white fw-bold py-2.5 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #73C23E 0%, #5ea82d 100%); font-size: 0.85rem;" id="btnSaveOrder">
+                            <i class="fa-solid fa-check me-1"></i> Save / Print Order
+                        </button>
+                        <button type="button" class="btn btn-outline-danger fw-bold py-2 rounded-pill shadow-sm" style="font-size: 0.8rem;" id="btnClearCart">
+                            <i class="fa-solid fa-trash-can me-1"></i> Clear Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- JavaScript para sa Filtering, Clean Time Clock, ug Cart Management -->
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Clean Time Only Clock (No Weekday/Date display)
+            function updateClock() {
+                const now = new Date();
+                $('#liveDateTime').text(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            // Item Group Filtering Script
+            $('.group-filter-btn').click(function () {
+                $('.group-filter-btn').removeClass('active shadow').css({
+                    'background-color': '#ffffff',
+                    'color': '#212529',
+                    'border': '1px solid #dee2e6'
+                });
+
+                $(this).addClass('active shadow').css({
+                    'background-color': '#008AB2',
+                    'color': '#ffffff',
+                    'border': 'none'
+                });
+
+                var groupId = $(this).data('groupid');
+
+                if (groupId === 'all') {
+                    $('.menu-item-card').fadeIn(200);
+                } else {
+                    $('.menu-item-card').hide();
+                    $('.menu-item-card[data-groupid="' + groupId + '"]').fadeIn(200);
+                }
+            });
+
+            // Cart Management
+            let cart = [];
+
+            function renderCart() {
+                let $cartList = $('#cartItemsList');
+                $cartList.empty();
+
+                if (cart.length === 0) {
+                    $cartList.html(`
+                        <div class="text-center text-muted py-5 my-auto" id="emptyCartState">
+                            <i class="fa-solid fa-basket-shopping fa-3x mb-2 text-black-50 opacity-50"></i>
+                            <p class="small mb-0 text-muted">No items added yet.<br>Click a menu item to begin.</p>
+                        </div>
+                    `);
+                    $('#cartCountBadge').text('0 items');
+                    $('#cartSubtotal').text('₱ 0.00');
+                    $('#cartTotal').text('₱ 0.00');
+                    return;
+                }
+
+                let subtotal = 0;
+                let totalCount = 0;
+
+                cart.forEach((item, index) => {
+                    let itemTotal = item.price * item.qty;
+                    subtotal += itemTotal;
+                    totalCount += item.qty;
+
+                    let rowHtml = `
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <div class="pe-2" style="flex: 1;">
+                                <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.85rem;" title="${item.name}">${item.name}</h6>
+                                <small class="text-muted">₱ ${item.price.toFixed(2)} x ${item.qty}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="fw-bold text-success small me-1">₱ ${itemTotal.toFixed(2)}</span>
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-1.5 decrease-qty" data-index="${index}" style="font-size: 0.7rem;"><i class="fa-solid fa-minus"></i></button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-1.5 remove-cart-item" data-index="${index}" style="font-size: 0.7rem;"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    $cartList.append(rowHtml);
+                });
+
+                $('#cartCountBadge').text(totalCount + (totalCount === 1 ? ' item' : ' items'));
+                $('#cartSubtotal').text('₱ ' + subtotal.toFixed(2));
+                $('#cartTotal').text('₱ ' + subtotal.toFixed(2));
+            }
+
+            $(document).on('click', '.add-to-cart-btn', function () {
+                let id = $(this).data('id');
+                let name = $(this).data('name');
+                let price = parseFloat($(this).data('price'));
+
+                let existing = cart.find(x => x.id === id);
+                if (existing) {
+                    existing.qty += 1;
+                } else {
+                    cart.push({ id: id, name: name, price: price, qty: 1 });
+                }
+                renderCart();
+            });
+
+            $(document).on('click', '.decrease-qty', function () {
+                let index = $(this).data('index');
+                if (cart[index].qty > 1) {
+                    cart[index].qty -= 1;
+                } else {
+                    cart.splice(index, 1);
+                }
+                renderCart();
+            });
+
+            $(document).on('click', '.remove-cart-item', function () {
+                let index = $(this).data('index');
+                cart.splice(index, 1);
+                renderCart();
+            });
+
+            $('#btnClearCart').click(function () {
+                if (cart.length > 0) {
+                    Swal.fire({
+                        title: '<span style="color: #2c3e50; font-weight: 700;">Clear Order?</span>',
+                        html: '<p class="text-muted small">Are you sure you want to remove all items in this cart?</p>',
+                        icon: 'warning',
+                        iconColor: '#dc3545',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#e06d74',
+                        confirmButtonText: 'Yes, clear it',
+                        customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            cart = [];
+                            renderCart();
+                        }
+                    });
+                }
+            });
+
+            $('#btnSaveOrder').click(function () {
+                if (cart.length === 0) {
+                    Swal.fire({
+                        title: 'Empty Cart',
+                        text: 'Please add at least one item before saving.',
+                        icon: 'info',
+                        confirmButtonColor: '#008AB2',
+                        customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                    });
+                    return;
+                }
+                Swal.fire({
+                    title: '<span style="color: #2c3e50; font-weight: 700;">Success!</span>',
+                    html: '<p class="text-muted small">Order saved successfully for Table @table.TableCode</p>',
+                    icon: 'success',
+                    iconColor: '#73C23E',
+                    confirmButtonColor: '#73C23E',
+                    customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                }).then(() => {
+                    window.location.href = '@Url.Action("Index", "Order")';
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .menu-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0.75rem 2rem rgba(0, 138, 178, 0.15) !important;
+        border-color: rgba(0, 138, 178, 0.3) !important;
+    }
+</style>
