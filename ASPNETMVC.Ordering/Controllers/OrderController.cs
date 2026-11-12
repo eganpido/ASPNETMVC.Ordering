@@ -3,7 +3,9 @@ using ASPNETMVC.Ordering.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Web;
 using System.Web.Mvc;
 
@@ -197,30 +199,156 @@ namespace ASPNETMVC.Ordering.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        [HttpPost]
+        public JsonResult CancelSale(int salesId)
+        {
+            try
+            {
+                var saleToDelete = db.TrnSales.FirstOrDefault(s => s.Id == salesId && s.IsLocked == false && s.IsTendered == false);
+
+                if (saleToDelete == null)
+                {
+                    return Json(new { success = false, message = "Active order is locked." });
+                }
+
+                db.TrnSales.DeleteOnSubmit(saleToDelete);
+                db.SubmitChanges();
+
+                return Json(new { success = true, message = "Order cancelled successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public JsonResult ConfirmLockOrder(int salesId)
+        {
+            try
+            {
+                var sales = db.TrnSales.FirstOrDefault(s => s.Id == salesId);
+                if (sales != null)
+                {
+                    sales.IsLocked = true;
+                    db.SubmitChanges();
+
+                    return Json(new { success = true, message = "Order locked successfully!" });
+                }
+                return Json(new { success = false, message = "Sales record not found." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public JsonResult UnlockOrder(int salesId)
+        {
+            try
+            {
+                var sales = db.TrnSales.FirstOrDefault(s => s.Id == salesId);
+                if (sales != null)
+                {
+                    sales.IsLocked = false;
+                    db.SubmitChanges();
+
+                    return Json(new { success = true, message = "Order unlocked successfully!" });
+                }
+                return Json(new { success = false, message = "Sales record not found." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
         // ==========================================
         // SEPARATE METHODS PARA SA CART / ITEM OPERATIONS
         // ==========================================
+        [HttpGet]
+        public JsonResult GetCartItems(int salesId)
+        {
+            try
+            {
+                var lines = db.TrnSalesLines
+                              .Where(l => l.SalesId == salesId)
+                              .Select(l => new {
+                                  lineId = l.Id,
+                                  itemId = l.ItemId,
+                                  name = l.MstItem.Alias, // Siguraduha nga mao ni ang property sa pangalan sa item sa imong MstItem table
+                                  price = l.Price,
+                                  qty = l.Quantity
+                              }).ToList();
 
+                return Json(new { success = true, data = lines }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
         [HttpPost]
         public JsonResult AddItemToCart(int salesId, int itemId, decimal quantity, decimal price)
         {
             try
             {
-                // Diri nimo isulod ang logic sa pag-insert sa TrnSalesLine gamit ang salesId
-                // Pananglitan:
-                /*
-                var newLine = new TrnSalesLine
+                var sales = db.TrnSales.FirstOrDefault(s => s.Id == salesId);
+                if (sales == null)
                 {
-                    SalesId = salesId,
-                    ItemId = itemId,
-                    Quantity = quantity,
-                    Price = price,
-                    Amount = quantity * price
-                };
-                db.TrnSalesLines.InsertOnSubmit(newLine);
+                    return Json(new { success = false, message = "Active sales record not found." });
+                }
+
+                var existingLine = db.TrnSalesLines.FirstOrDefault(l => l.SalesId == salesId && l.ItemId == itemId);
+
+                if (existingLine != null)
+                {
+                    existingLine.Quantity += quantity;
+                    existingLine.Amount = existingLine.Quantity * existingLine.Price;
+                }
+                else
+                {
+                    var item = db.MstItems.FirstOrDefault(i => i.Id == itemId);
+                    var newLine = new TrnSalesLine
+                    {
+                        SalesId = salesId,
+                        ItemId = itemId,
+                        Quantity = quantity,
+                        Amount = quantity * price,
+                        IsPrinted = false,
+                        UnitId = item.UnitId,
+                        Cost = item.Cost,
+                        Price = price,
+                        DiscountId = 2,
+                        DiscountRate = 0,
+                        DiscountAmount = 0,
+                        NetPrice = price,
+                        TaxId = item.OutTaxId,
+                        TaxRate = item.MstTax1.Rate,
+                        TaxAmount = item.MstTax1.Rate > 0 ? (price / (1 + (item.MstTax1.Rate / 100))) * (item.MstTax1.Rate / 100) : 0m,
+                        SalesAccountId = 159, 
+                        AssetAccountId = 255, 
+                        CostAccountId = 238, 
+                        TaxAccountId = 87, 
+                        SalesLineTimeStamp = DateTime.Now,
+                        UserId = Convert.ToInt32(Session["UserId"]),
+                        Preparation = "",
+                        IsPrepared = false,
+                        Price1 = 0,
+                        Price2 = 0,
+                        Price2LessTax = 0,
+                        PriceSplitPercentage = 0,
+                        BodegaItemQty = 0,
+                        BodegaLocation = "",
+                        ItemGroupId = null,
+                        ItemTaxId = item.OutTaxId
+                    };
+                    db.TrnSalesLines.InsertOnSubmit(newLine);
+                }
                 db.SubmitChanges();
-                */
+
+                UpdateSalesTotalAmount(salesId);
 
                 return Json(new { success = true, message = "Item added successfully!" });
             }
@@ -229,14 +357,23 @@ namespace ASPNETMVC.Ordering.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
         [HttpPost]
-        public JsonResult UpdateCartItem(int lineId, decimal quantity)
+        public JsonResult IncreaseQuantity(int lineId)
         {
             try
             {
-                // Logic sa pag-update sa quantity sa TrnSalesLine
-                return Json(new { success = true, message = "Cart updated successfully!" });
+                var salesLine = db.TrnSalesLines.FirstOrDefault(l => l.Id == lineId);
+                if (salesLine != null)
+                {
+                    salesLine.Quantity += 1;
+                    salesLine.Amount = salesLine.Quantity * salesLine.Price;
+                    db.SubmitChanges();
+
+                    UpdateSalesTotalAmount(salesLine.SalesId);
+
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false, message = "Item not found in cart." });
             }
             catch (Exception ex)
             {
@@ -245,16 +382,105 @@ namespace ASPNETMVC.Ordering.Controllers
         }
 
         [HttpPost]
-        public JsonResult DeleteCartItem(int lineId)
+        public JsonResult DecreaseQuantity(int lineId)
         {
             try
             {
-                // Logic sa pagtangtang sa item gikan sa TrnSalesLine
-                return Json(new { success = true, message = "Item removed successfully!" });
+                var salesLine = db.TrnSalesLines.FirstOrDefault(l => l.Id == lineId);
+                if (salesLine != null)
+                {
+                    int salesId = salesLine.SalesId;
+
+                    if (salesLine.Quantity > 1)
+                    {
+                        salesLine.Quantity -= 1;
+                        salesLine.Amount = salesLine.Quantity * salesLine.Price;
+                    }
+                    else
+                    {
+                        db.TrnSalesLines.DeleteOnSubmit(salesLine);
+                    }
+                    db.SubmitChanges();
+
+                    UpdateSalesTotalAmount(salesId);
+
+                    return Json(new { success = true });
+                }
+                return Json(new { success = false, message = "Item not found in cart." });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public JsonResult RemoveCartItem(int lineId)
+        {
+            try
+            {
+                var salesLine = db.TrnSalesLines.FirstOrDefault(l => l.Id == lineId);
+
+                if (salesLine != null)
+                {
+                    int salesId = salesLine.SalesId;
+
+                    db.TrnSalesLines.DeleteOnSubmit(salesLine);
+                    db.SubmitChanges();
+
+                    UpdateSalesTotalAmount(salesId);
+
+                    return Json(new { success = true, message = "Item removed successfully!" });
+                }
+
+                return Json(new { success = false, message = "Item not found in cart." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpPost]
+        public JsonResult ClearCart(int salesId)
+        {
+            try
+            {
+                var salesLines = db.TrnSalesLines.Where(l => l.SalesId == salesId).ToList();
+
+                if (salesLines.Any())
+                {
+                    db.TrnSalesLines.DeleteAllOnSubmit(salesLines);
+                    db.SubmitChanges();
+                }
+
+                var sales = db.TrnSales.FirstOrDefault(s => s.Id == salesId);
+                if (sales != null)
+                {
+                    sales.Amount = 0m;
+                    sales.BalanceAmount = 0m;
+                    db.SubmitChanges();
+                }
+
+                return Json(new { success = true, message = "Order items cleared successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        private void UpdateSalesTotalAmount(int salesId)
+        {
+            var sales = db.TrnSales.FirstOrDefault(s => s.Id == salesId);
+            if (sales != null)
+            {
+                decimal totalAmount = db.TrnSalesLines
+                                        .Where(l => l.SalesId == salesId)
+                                        .Sum(l => (decimal?)l.Amount) ?? 0m;
+
+                sales.Amount = totalAmount;
+                sales.BalanceAmount = totalAmount; 
+
+                db.SubmitChanges();
             }
         }
     }

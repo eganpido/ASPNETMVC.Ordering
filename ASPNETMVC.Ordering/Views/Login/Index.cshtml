@@ -25,57 +25,53 @@
                     @using (Html.BeginForm("Login", "Login", FormMethod.Post, new { @class = "needs-validation", role = "form" }))
                     {
                         @Html.AntiForgeryToken()
-
-                        <!-- Validation Summary if needed -->
                         @Html.ValidationSummary(true, "", new { @class = "text-danger small mb-3" })
 
-                        <!-- Terminal Selection Field -->
+                        <!-- Username Field -->
                         <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">TERMINAL</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
-                                    <i class="fa-solid fa-desktop text-muted"></i>
+                            <label class="form-label text-secondary small fw-bold">USERNAME</label>
+                            <div class="input-group shadow-sm" style="border-radius: 12px;">
+                                <span class="input-group-text bg-light border-end-0 px-3" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
+                                    <img src="@Url.Content("~/Content/Images/username.png")" alt="User" style="width: 20px; height: 20px; object-fit: contain;" />
                                 </span>
-                                <select name="TerminalId" class="form-select bg-light border-start-0" required style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none;">
+                                <input type="text" name="Username" class="form-control bg-light border-start-0 py-2.5" placeholder="e.g. staff01" required autofocus style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none; font-size: 0.92rem;" />
+                            </div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold">PASSWORD</label>
+                            <div class="input-group shadow-sm" style="border-radius: 12px;">
+                                <span class="input-group-text bg-light border-end-0 px-3" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
+                                    <img src="@Url.Content("~/Content/Images/password.png")" alt="Password" style="width: 20px; height: 20px; object-fit: contain;" />
+                                </span>
+                                <input type="password" name="Password" class="form-control bg-light border-start-0 py-2.5" placeholder="••••••••" required style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none; font-size: 0.92rem;" />
+                            </div>
+                        </div>
+
+                        <!-- Terminal Selection Field -->
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small fw-bold">TERMINAL</label>
+                            <div class="input-group shadow-sm" style="border-radius: 12px;">
+                                <span class="input-group-text bg-light border-end-0 px-3" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
+                                    <img src="@Url.Content("~/Content/Images/terminal.png")" alt="Terminal" style="width: 20px; height: 20px; object-fit: contain;" />
+                                </span>
+                                <select name="TerminalId" class="form-select bg-light border-start-0 py-2.5" required style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none; font-size: 0.92rem;">
                                     <option value="" disabled selected>-- Select Terminal --</option>
                                     @if (terminals != null)
                                     {
-                                        foreach (var term in terminals)
+                                        foreach (var terminal in terminals)
                                         {
-                                            <option value="@term.Id">@term.Terminal</option>
+                                            <option value="@terminal.Id" @(terminal.Id == 1 ? "selected" : "")>@terminal.Terminal</option>
                                         }
                                     }
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Username / Cashier ID Field -->
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">USERNAME</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
-                                    <i class="fa-solid fa-user text-muted"></i>
-                                </span>
-                                <input type="text" name="Username" class="form-control bg-light border-start-0" placeholder="e.g. staff01" required autofocus style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none;" />
-                            </div>
-                        </div>
-
-                        <!-- Password Field -->
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <label class="form-label text-muted small fw-bold">PASSWORD</label>
-                            </div>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
-                                    <i class="fa-solid fa-lock text-muted"></i>
-                                </span>
-                                <input type="password" name="Password" class="form-control bg-light border-start-0" placeholder="••••••••" required style="border-radius: 0 12px 12px 0; border-color: #cbd5e1; box-shadow: none;" />
-                            </div>
-                        </div>
-
                         <!-- Submit Button -->
                         <div class="d-grid mb-3">
-                            <button type="submit" class="btn text-white fw-bold py-3 shadow-sm" style="background: linear-gradient(135deg, #008AB2 0%, #006080 100%); border-radius: 12px; transition: all 0.2s ease-in-out;">
+                            <button type="submit" class="btn text-white fw-bold py-3 shadow-sm d-inline-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #008AB2 0%, #006080 100%); border-radius: 12px; transition: all 0.2s ease-in-out; font-size: 0.95rem;">
                                 <i class="fa-solid fa-right-to-bracket me-2"></i> Sign-in to Terminal
                             </button>
                         </div>

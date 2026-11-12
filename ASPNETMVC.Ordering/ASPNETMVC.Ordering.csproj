@@ -118,11 +118,16 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
+    <Content Include="Content\Images\delete.png" />
+    <Content Include="Content\Images\edit.png" />
+    <Content Include="Content\Images\food.png" />
     <Content Include="Content\Images\liteclerkicon.ico" />
     <Content Include="Content\Images\liteclerklogo.png" />
     <Content Include="Content\Images\liteclerklogoimg.png" />
+    <Content Include="Content\Images\minus.png" />
     <Content Include="Content\Images\occupied.png" />
     <Content Include="Content\Images\ordering.jpg" />
+    <Content Include="Content\Images\plus.png" />
     <Content Include="Content\Images\table.png" />
     <Content Include="Content\Site.css" />
     <Content Include="Global.asax" />

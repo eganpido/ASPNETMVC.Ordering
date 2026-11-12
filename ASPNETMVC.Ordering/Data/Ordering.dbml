@@ -73,6 +73,8 @@
       <Association Name="MstItem_TrnSalesLine" Member="TrnSalesLines" ThisKey="Id" OtherKey="ItemId" Type="TrnSalesLine" />
       <Association Name="MstUser_MstItem" Member="MstUser" ThisKey="EntryUserId" OtherKey="Id" Type="MstUser" IsForeignKey="true" />
       <Association Name="MstUser_MstItem1" Member="MstUser1" ThisKey="UpdateUserId" OtherKey="Id" Type="MstUser" IsForeignKey="true" />
+      <Association Name="MstTax_MstItem" Member="MstTax" ThisKey="InTaxId" OtherKey="Id" Type="MstTax" IsForeignKey="true" />
+      <Association Name="MstTax_MstItem1" Member="MstTax1" ThisKey="OutTaxId" OtherKey="Id" Type="MstTax" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.MstCustomer" Member="MstCustomers">
@@ -234,6 +236,7 @@
       <Association Name="MstItemGroup_TrnSalesLine" Member="MstItemGroup" ThisKey="ItemGroupId" OtherKey="Id" Type="MstItemGroup" IsForeignKey="true" />
       <Association Name="MstUser_TrnSalesLine" Member="MstUser" ThisKey="UserId" OtherKey="Id" Type="MstUser" IsForeignKey="true" />
       <Association Name="TrnSale_TrnSalesLine" Member="TrnSale" ThisKey="SalesId" OtherKey="Id" Type="TrnSale" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+      <Association Name="MstTax_TrnSalesLine" Member="MstTax" ThisKey="TaxId" OtherKey="Id" Type="MstTax" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.MstTable" Member="MstTables">
@@ -274,6 +277,18 @@
       <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="Terminal" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
       <Association Name="MstTerminal_TrnSale" Member="TrnSales" ThisKey="Id" OtherKey="TerminalId" Type="TrnSale" />
+    </Type>
+  </Table>
+  <Table Name="dbo.MstTax" Member="MstTaxes">
+    <Type Name="MstTax">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Code" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="Tax" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="Rate" Type="System.Decimal" DbType="Decimal(18,5) NOT NULL" CanBeNull="false" />
+      <Column Name="AccountId" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="MstTax_MstItem" Member="MstItems" ThisKey="Id" OtherKey="InTaxId" Type="MstItem" />
+      <Association Name="MstTax_MstItem1" Member="MstItems1" ThisKey="Id" OtherKey="OutTaxId" Type="MstItem" />
+      <Association Name="MstTax_TrnSalesLine" Member="TrnSalesLines" ThisKey="Id" OtherKey="TaxId" Type="TrnSalesLine" />
     </Type>
   </Table>
 </Database>

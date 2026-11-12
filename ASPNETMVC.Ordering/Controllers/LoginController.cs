@@ -32,20 +32,20 @@ namespace ASPNETMVC.Ordering.Controllers
             var user = db.MstUsers
                          .FirstOrDefault(u => u.UserName == Username && u.Password == Password);
 
-            if (user != null)
+            var terminalObj = db.MstTerminals.FirstOrDefault(t => t.Id == TerminalId);
+
+            if (user != null && terminalObj != null)
             {
-                Session["UserId"] = user.Id;
                 Session["StaffUser"] = user.UserName;
-                Session["TerminalId"] = TerminalId;
-                var terminal = db.MstTerminals
-                         .FirstOrDefault(u => u.Id == TerminalId);
-                Session["Terminal"] = terminal.Terminal;
+                Session["UserId"] = user.Id;
+                Session["TerminalId"] = terminalObj.Id;
+                Session["Terminal"] = terminalObj.Terminal; 
 
                 return RedirectToAction("Index", "Order");
             }
             else
             {
-                ModelState.AddModelError("", "Invalid username / password!");
+                ModelState.AddModelError("", "Invalid username / password or terminal!");
                 ViewBag.Terminals = db.MstTerminals.ToList();
                 return View("Index");
             }

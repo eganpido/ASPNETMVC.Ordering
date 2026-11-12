@@ -63,6 +63,9 @@ namespace ASPNETMVC.Ordering.Data
     partial void InsertMstTerminal(MstTerminal instance);
     partial void UpdateMstTerminal(MstTerminal instance);
     partial void DeleteMstTerminal(MstTerminal instance);
+    partial void InsertMstTax(MstTax instance);
+    partial void UpdateMstTax(MstTax instance);
+    partial void DeleteMstTax(MstTax instance);
     #endregion
 		
 		public OrderingDataContext(string connection) : 
@@ -174,6 +177,14 @@ namespace ASPNETMVC.Ordering.Data
 			get
 			{
 				return this.GetTable<MstTerminal>();
+			}
+		}
+		
+		public System.Data.Linq.Table<MstTax> MstTaxes
+		{
+			get
+			{
+				return this.GetTable<MstTax>();
 			}
 		}
 	}
@@ -1034,6 +1045,10 @@ namespace ASPNETMVC.Ordering.Data
 		
 		private EntityRef<MstUser> _MstUser1;
 		
+		private EntityRef<MstTax> _MstTax;
+		
+		private EntityRef<MstTax> _MstTax1;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -1118,6 +1133,8 @@ namespace ASPNETMVC.Ordering.Data
 			this._TrnSalesLines = new EntitySet<TrnSalesLine>(new Action<TrnSalesLine>(this.attach_TrnSalesLines), new Action<TrnSalesLine>(this.detach_TrnSalesLines));
 			this._MstUser = default(EntityRef<MstUser>);
 			this._MstUser1 = default(EntityRef<MstUser>);
+			this._MstTax = default(EntityRef<MstTax>);
+			this._MstTax1 = default(EntityRef<MstTax>);
 			OnCreated();
 		}
 		
@@ -1332,6 +1349,10 @@ namespace ASPNETMVC.Ordering.Data
 			{
 				if ((this._InTaxId != value))
 				{
+					if (this._MstTax.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
 					this.OnInTaxIdChanging(value);
 					this.SendPropertyChanging();
 					this._InTaxId = value;
@@ -1352,6 +1373,10 @@ namespace ASPNETMVC.Ordering.Data
 			{
 				if ((this._OutTaxId != value))
 				{
+					if (this._MstTax1.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
 					this.OnOutTaxIdChanging(value);
 					this.SendPropertyChanging();
 					this._OutTaxId = value;
@@ -1939,6 +1964,74 @@ namespace ASPNETMVC.Ordering.Data
 						this._UpdateUserId = default(int);
 					}
 					this.SendPropertyChanged("MstUser1");
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="MstTax_MstItem", Storage="_MstTax", ThisKey="InTaxId", OtherKey="Id", IsForeignKey=true)]
+		public MstTax MstTax
+		{
+			get
+			{
+				return this._MstTax.Entity;
+			}
+			set
+			{
+				MstTax previousValue = this._MstTax.Entity;
+				if (((previousValue != value) 
+							|| (this._MstTax.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._MstTax.Entity = null;
+						previousValue.MstItems.Remove(this);
+					}
+					this._MstTax.Entity = value;
+					if ((value != null))
+					{
+						value.MstItems.Add(this);
+						this._InTaxId = value.Id;
+					}
+					else
+					{
+						this._InTaxId = default(int);
+					}
+					this.SendPropertyChanged("MstTax");
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="MstTax_MstItem1", Storage="_MstTax1", ThisKey="OutTaxId", OtherKey="Id", IsForeignKey=true)]
+		public MstTax MstTax1
+		{
+			get
+			{
+				return this._MstTax1.Entity;
+			}
+			set
+			{
+				MstTax previousValue = this._MstTax1.Entity;
+				if (((previousValue != value) 
+							|| (this._MstTax1.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._MstTax1.Entity = null;
+						previousValue.MstItems1.Remove(this);
+					}
+					this._MstTax1.Entity = value;
+					if ((value != null))
+					{
+						value.MstItems1.Add(this);
+						this._OutTaxId = value.Id;
+					}
+					else
+					{
+						this._OutTaxId = default(int);
+					}
+					this.SendPropertyChanged("MstTax1");
 				}
 			}
 		}
@@ -4960,6 +5053,8 @@ namespace ASPNETMVC.Ordering.Data
 		
 		private EntityRef<TrnSale> _TrnSale;
 		
+		private EntityRef<MstTax> _MstTax;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -5042,6 +5137,7 @@ namespace ASPNETMVC.Ordering.Data
 			this._MstItemGroup = default(EntityRef<MstItemGroup>);
 			this._MstUser = default(EntityRef<MstUser>);
 			this._TrnSale = default(EntityRef<TrnSale>);
+			this._MstTax = default(EntityRef<MstTax>);
 			OnCreated();
 		}
 		
@@ -5304,6 +5400,10 @@ namespace ASPNETMVC.Ordering.Data
 			{
 				if ((this._TaxId != value))
 				{
+					if (this._MstTax.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
 					this.OnTaxIdChanging(value);
 					this.SendPropertyChanging();
 					this._TaxId = value;
@@ -5893,6 +5993,40 @@ namespace ASPNETMVC.Ordering.Data
 						this._SalesId = default(int);
 					}
 					this.SendPropertyChanged("TrnSale");
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="MstTax_TrnSalesLine", Storage="_MstTax", ThisKey="TaxId", OtherKey="Id", IsForeignKey=true)]
+		public MstTax MstTax
+		{
+			get
+			{
+				return this._MstTax.Entity;
+			}
+			set
+			{
+				MstTax previousValue = this._MstTax.Entity;
+				if (((previousValue != value) 
+							|| (this._MstTax.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._MstTax.Entity = null;
+						previousValue.TrnSalesLines.Remove(this);
+					}
+					this._MstTax.Entity = value;
+					if ((value != null))
+					{
+						value.TrnSalesLines.Add(this);
+						this._TaxId = value.Id;
+					}
+					else
+					{
+						this._TaxId = default(int);
+					}
+					this.SendPropertyChanged("MstTax");
 				}
 			}
 		}
@@ -6710,6 +6844,248 @@ namespace ASPNETMVC.Ordering.Data
 		{
 			this.SendPropertyChanging();
 			entity.MstTerminal = null;
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.MstTax")]
+	public partial class MstTax : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _Id;
+		
+		private string _Code;
+		
+		private string _Tax;
+		
+		private decimal _Rate;
+		
+		private int _AccountId;
+		
+		private EntitySet<MstItem> _MstItems;
+		
+		private EntitySet<MstItem> _MstItems1;
+		
+		private EntitySet<TrnSalesLine> _TrnSalesLines;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnIdChanging(int value);
+    partial void OnIdChanged();
+    partial void OnCodeChanging(string value);
+    partial void OnCodeChanged();
+    partial void OnTaxChanging(string value);
+    partial void OnTaxChanged();
+    partial void OnRateChanging(decimal value);
+    partial void OnRateChanged();
+    partial void OnAccountIdChanging(int value);
+    partial void OnAccountIdChanged();
+    #endregion
+		
+		public MstTax()
+		{
+			this._MstItems = new EntitySet<MstItem>(new Action<MstItem>(this.attach_MstItems), new Action<MstItem>(this.detach_MstItems));
+			this._MstItems1 = new EntitySet<MstItem>(new Action<MstItem>(this.attach_MstItems1), new Action<MstItem>(this.detach_MstItems1));
+			this._TrnSalesLines = new EntitySet<TrnSalesLine>(new Action<TrnSalesLine>(this.attach_TrnSalesLines), new Action<TrnSalesLine>(this.detach_TrnSalesLines));
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Id", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int Id
+		{
+			get
+			{
+				return this._Id;
+			}
+			set
+			{
+				if ((this._Id != value))
+				{
+					this.OnIdChanging(value);
+					this.SendPropertyChanging();
+					this._Id = value;
+					this.SendPropertyChanged("Id");
+					this.OnIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Code", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string Code
+		{
+			get
+			{
+				return this._Code;
+			}
+			set
+			{
+				if ((this._Code != value))
+				{
+					this.OnCodeChanging(value);
+					this.SendPropertyChanging();
+					this._Code = value;
+					this.SendPropertyChanged("Code");
+					this.OnCodeChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Tax", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string Tax
+		{
+			get
+			{
+				return this._Tax;
+			}
+			set
+			{
+				if ((this._Tax != value))
+				{
+					this.OnTaxChanging(value);
+					this.SendPropertyChanging();
+					this._Tax = value;
+					this.SendPropertyChanged("Tax");
+					this.OnTaxChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Rate", DbType="Decimal(18,5) NOT NULL")]
+		public decimal Rate
+		{
+			get
+			{
+				return this._Rate;
+			}
+			set
+			{
+				if ((this._Rate != value))
+				{
+					this.OnRateChanging(value);
+					this.SendPropertyChanging();
+					this._Rate = value;
+					this.SendPropertyChanged("Rate");
+					this.OnRateChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_AccountId", DbType="Int NOT NULL")]
+		public int AccountId
+		{
+			get
+			{
+				return this._AccountId;
+			}
+			set
+			{
+				if ((this._AccountId != value))
+				{
+					this.OnAccountIdChanging(value);
+					this.SendPropertyChanging();
+					this._AccountId = value;
+					this.SendPropertyChanged("AccountId");
+					this.OnAccountIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="MstTax_MstItem", Storage="_MstItems", ThisKey="Id", OtherKey="InTaxId")]
+		public EntitySet<MstItem> MstItems
+		{
+			get
+			{
+				return this._MstItems;
+			}
+			set
+			{
+				this._MstItems.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="MstTax_MstItem1", Storage="_MstItems1", ThisKey="Id", OtherKey="OutTaxId")]
+		public EntitySet<MstItem> MstItems1
+		{
+			get
+			{
+				return this._MstItems1;
+			}
+			set
+			{
+				this._MstItems1.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="MstTax_TrnSalesLine", Storage="_TrnSalesLines", ThisKey="Id", OtherKey="TaxId")]
+		public EntitySet<TrnSalesLine> TrnSalesLines
+		{
+			get
+			{
+				return this._TrnSalesLines;
+			}
+			set
+			{
+				this._TrnSalesLines.Assign(value);
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+		
+		private void attach_MstItems(MstItem entity)
+		{
+			this.SendPropertyChanging();
+			entity.MstTax = this;
+		}
+		
+		private void detach_MstItems(MstItem entity)
+		{
+			this.SendPropertyChanging();
+			entity.MstTax = null;
+		}
+		
+		private void attach_MstItems1(MstItem entity)
+		{
+			this.SendPropertyChanging();
+			entity.MstTax1 = this;
+		}
+		
+		private void detach_MstItems1(MstItem entity)
+		{
+			this.SendPropertyChanging();
+			entity.MstTax1 = null;
+		}
+		
+		private void attach_TrnSalesLines(TrnSalesLine entity)
+		{
+			this.SendPropertyChanging();
+			entity.MstTax = this;
+		}
+		
+		private void detach_TrnSalesLines(TrnSalesLine entity)
+		{
+			this.SendPropertyChanging();
+			entity.MstTax = null;
 		}
 	}
 }
