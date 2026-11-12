@@ -279,7 +279,8 @@ namespace ASPNETMVC.Ordering.Controllers
                                   itemId = l.ItemId,
                                   name = l.MstItem.Alias, // Siguraduha nga mao ni ang property sa pangalan sa item sa imong MstItem table
                                   price = l.Price,
-                                  qty = l.Quantity
+                                  qty = l.Quantity,
+                                  preparation = l.Preparation
                               }).ToList();
 
                 return Json(new { success = true, data = lines }, JsonRequestBehavior.AllowGet);
@@ -290,7 +291,7 @@ namespace ASPNETMVC.Ordering.Controllers
             }
         }
         [HttpPost]
-        public JsonResult AddItemToCart(int salesId, int itemId, decimal quantity, decimal price)
+        public JsonResult AddItemToCart(int salesId, int itemId, decimal quantity, decimal price, string preparation)
         {
             try
             {
@@ -333,7 +334,7 @@ namespace ASPNETMVC.Ordering.Controllers
                         TaxAccountId = 87, 
                         SalesLineTimeStamp = DateTime.Now,
                         UserId = Convert.ToInt32(Session["UserId"]),
-                        Preparation = "",
+                        Preparation = preparation,
                         IsPrepared = false,
                         Price1 = 0,
                         Price2 = 0,
@@ -462,6 +463,26 @@ namespace ASPNETMVC.Ordering.Controllers
                 }
 
                 return Json(new { success = true, message = "Order items cleared successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpPost]
+        public JsonResult UpdatePreparation(int lineId, string preparation)
+        {
+            try
+            {
+                var salesLine = db.TrnSalesLines.FirstOrDefault(l => l.Id == lineId);
+                if (salesLine != null)
+                {
+                    salesLine.Preparation = preparation;
+                    db.SubmitChanges();
+
+                    return Json(new { success = true, message = "Preparation updated successfully!" });
+                }
+                return Json(new { success = false, message = "Cart item not found." });
             }
             catch (Exception ex)
             {
