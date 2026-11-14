@@ -46,7 +46,7 @@
 </head>
 <body>
     <!-- Top Navigation Bar -->
-    <div class="navbar navbar-inverse navbar-fixed-top" style="position: relative;">
+    <div class="navbar navbar-inverse" style="margin-bottom: 0;">
         <div class="container">
             <div class="navbar-header">
                 <!-- Logo Action Link -->
@@ -79,6 +79,16 @@
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script src="~/Scripts/bootstrap.js"></script>
     <script src="@Url.Content("~/Scripts/sweetalert2.all.min.js")"></script>
+
+    <!-- Browser Back-Button Cache Prevention Script -->
+    <script>
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

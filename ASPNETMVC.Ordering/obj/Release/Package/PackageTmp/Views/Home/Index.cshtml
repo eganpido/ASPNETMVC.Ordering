@@ -1,0 +1,255 @@
+﻿@{
+    ViewBag.Title = "Home";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Load Poppins Font & FontAwesome for modern icons -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* POS Brand Colors based on the Logo */
+    :root {
+        --pos-blue: #008AB2; /* Primary Brand Blue */
+        --pos-green: #73C23E; /* Spotlight/Accent Green */
+        --pos-charcoal: #5E5E5E; /* Typography & Neutral Dark */
+        --pos-light: #F3F6F8; /* Interface Background */
+        --pos-dark-bg: #3E4348; /* Dark UI Accents */
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif !important;
+        background-color: var(--pos-light);
+        color: var(--pos-charcoal);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* POS Typography Overrides */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 700;
+        color: #2c2c2c;
+    }
+
+    /* Main Dashboard container */
+    .dashboard-container {
+        padding: 0.5rem 1.5rem 2rem 1.5rem;
+    }
+
+    .page-content-wrapper {
+        flex: 1 0 auto;
+        padding-top: 25px;
+        padding-bottom: 40px;
+    }
+
+    /* Top navbar integration styling */
+    .pos-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .pos-brand img {
+            height: 40px;
+            border-radius: 4px;
+        }
+
+    .pos-brand-text {
+        font-size: 1.4rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #2c2c2c;
+    }
+
+    /* Header Banner Styling */
+    .pos-hero-banner {
+        background-color: #ffffff;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-btn {
+        background-color: var(--pos-green);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 1.1rem;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 12px;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+        .hero-btn:hover {
+            background-color: #5ea82d;
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+    /* Card styling (Touch Friendly POS UI) */
+    .pos-card {
+        border: none;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+        cursor: pointer;
+    }
+
+        .pos-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+    /* Take New Order Highlight Card (Primary Blue) */
+    .pos-card-primary {
+        background: var(--pos-blue);
+        color: #ffffff;
+    }
+
+        .pos-card-primary h3, .pos-card-primary p {
+            color: #ffffff !important;
+        }
+
+        .pos-card-primary .btn-white {
+            background: #ffffff;
+            color: var(--pos-blue);
+            font-weight: 700;
+            border-radius: 10px;
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            transition: background 0.2s;
+        }
+
+            .pos-card-primary .btn-white:hover {
+                background: rgba(255, 255, 255, 0.9);
+            }
+
+    /* Badges & Status markers */
+    .status-badge-live {
+        background-color: #e2f4df;
+        color: var(--pos-green);
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+    }
+
+    .db-badge {
+        background-color: var(--pos-green);
+        color: #fff;
+        font-weight: 600;
+        border-radius: 20px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+
+    /* Icon sizes */
+    .pos-icon-huge {
+        font-size: 4.5rem;
+        opacity: 0.9;
+        margin: 1.5rem 0;
+    }
+
+    /* Metrics display */
+    .metrics-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--pos-charcoal);
+        margin-bottom: 0.5rem;
+    }
+
+    .metrics-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a1a;
+        line-height: 1.2;
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- POS STATUS BAR & NAVIGATION (Visual Top Row) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div class="pos-brand">
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="db-badge shadow-sm">
+                <i class="fa-solid fa-circle-check me-2"></i> DB Status : Connected
+            </span>
+        </div>
+    </div>
+
+    <!-- HERO PANEL -->
+    <div class="pos-hero-banner shadow-lg position-relative overflow-hidden" style="background: linear-gradient(135deg, #ffffff 0%, #f4f8fa 100%); border: 1px solid rgba(0, 138, 178, 0.15); border-radius: 20px; padding: 2rem 1.5rem;">
+        <!-- Background glowing decorative orb -->
+        <div style="position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(115,194,62,0.15) 0%, rgba(0,138,178,0) 70%); border-radius: 50%; z-index: 0;"></div>
+
+        <div class="row align-items-center position-relative" style="z-index: 1;">
+            <!-- Left side text content -->
+            <div class="col-12 col-lg-7 mb-4 mb-lg-0">
+                <!-- Badge tag -->
+                <div class="d-inline-flex align-items-center px-3 py-1 mb-3 rounded-pill" style="background-color: rgba(115, 194, 62, 0.12); color: #5ea82d; font-size: 0.85rem; font-weight: 700;">
+                    <i class="fa-solid fa-bolt me-2"></i> LOCAL NETWORK EDITION
+                </div>
+
+                <h1 class="display-5 fw-extrabold mb-3 text-dark" style="letter-spacing: -1.5px; font-size: clamp(1.8rem, 4vw, 2.8rem);">
+                    Liteclerk <span style="color: var(--pos-blue);">POS Ordering</span>
+                </h1>
+                <p class="fs-5 text-muted mb-4" style="font-weight: 300; line-height: 1.6;">
+                    A high-speed, browser-based ordering application connected directly to your existing local database. Manage counter transactions seamlessly with powerful features:
+                </p>
+
+                <ul class="fs-6 mb-4" style="list-style-type: none; padding-left: 0;">
+                    <li class="mb-3 d-flex align-items-start">
+                        <div class="icon-box me-3 mt-1 d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 28px; height: 28px; background-color: #e2f4df; color: var(--pos-green); flex-shrink: 0;">
+                            <i class="fa-solid fa-check fa-xs"></i>
+                        </div>
+                        <div><strong class="text-dark">Real-Time Database Sync:</strong> <span class="text-muted">Instantly fetches items, prices, and inventory directly from your local database with zero latency.</span></div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-start">
+                        <div class="icon-box me-3 mt-1 d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 28px; height: 28px; background-color: #e2f4df; color: var(--pos-green); flex-shrink: 0;">
+                            <i class="fa-solid fa-check fa-xs"></i>
+                        </div>
+                        <div><strong class="text-dark">Frictionless Order Queues:</strong> <span class="text-muted">Effortlessly handle active orders, kitchen tickets, table tracking, and quick-add catalog navigation.</span></div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-start">
+                        <div class="icon-box me-3 mt-1 d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 28px; height: 28px; background-color: #e2f4df; color: var(--pos-green); flex-shrink: 0;">
+                            <i class="fa-solid fa-check fa-xs"></i>
+                        </div>
+                        <div><strong class="text-dark">Browser-Based Access:</strong> <span class="text-muted">Modern, responsive web interface accessible instantly across local client devices without complex client installations.</span></div>
+                    </li>
+                    <li class="mb-3 d-flex align-items-start">
+                        <div class="icon-box me-3 mt-1 d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 28px; height: 28px; background-color: #e2f4df; color: var(--pos-green); flex-shrink: 0;">
+                            <i class="fa-solid fa-check fa-xs"></i>
+                        </div>
+                        <div><strong class="text-dark">Local Network Integration:</strong> <span class="text-muted">Built specifically to operate reliably within your local network environment for secure, fast-paced counter operations.</span></div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Right side graphic card container (Responsive for Portrait & Landscape) -->
+            <div class="col-12 col-lg-5 text-center">
+                <div class="p-3 p-sm-4 rounded-4 shadow-sm position-relative mb-3" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8);">
+                    <div class="py-2 py-sm-4">
+                        <img src="@Url.Content("~/Content/Images/ordering.jpg")" alt="Ordering" class="mb-3 shadow-sm rounded-4 img-fluid" style="max-height: 200px; width: auto; object-fit: contain;" />
+                        <h5 class="fw-bold text-dark mt-2">Ready to take order</h5>
+                        <p class="text-muted small mb-0">High-performance local transactions</p>
+                    </div>
+                </div>
+
+                <!-- START NEW ORDER Button -->
+                <a href="@Url.Action("Index", "Login")" class="btn hero-btn shadow-sm px-4 py-3 d-inline-flex align-items-center justify-content-center w-100" style="border-radius: 12px; font-weight: 700;">
+                    <i class="fa-solid fa-cart-arrow-down me-2 fs-5"></i> START NEW ORDER
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

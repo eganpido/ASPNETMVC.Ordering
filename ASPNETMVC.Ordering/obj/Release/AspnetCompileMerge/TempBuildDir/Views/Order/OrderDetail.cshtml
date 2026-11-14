@@ -1,0 +1,719 @@
+﻿@{
+    ViewBag.Title = "Order Taking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var table = ViewBag.Table as dynamic;
+    var activeSale = ViewBag.ActiveSale as dynamic;
+    var itemGroups = ViewBag.ItemGroups as IEnumerable<dynamic>;
+    var itemGroupItems = ViewBag.ItemGroupItems as IEnumerable<dynamic>;
+    var items = ViewBag.Items as IEnumerable<dynamic>;
+}
+
+<div class="container-fluid py-3 px-3 px-xl-4" style="background-color: #f8fafc; min-height: 92vh;">
+    <!-- Header Section -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 bg-white px-4 py-3 rounded-4 shadow-sm border">
+        <div class="d-flex align-items-center gap-3">
+            <!-- Bulag ug klaro nga Back Button nga naay icon ug text -->
+            <button type="button" id="btnBackToOrders" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center shadow-sm" style="transition: all 0.2s;">
+                <i class="fa-solid fa-arrow-left me-2"></i> Back to Orders
+            </button>
+
+            <div>
+                <h4 class="fw-extrabold text-dark mb-0" style="letter-spacing: -0.5px;">
+                    Table: <span style="color: #008AB2;">@table.TableCode</span>
+                </h4>
+                <span class="badge rounded-pill px-2.5 py-1 text-success" style="background-color: rgba(115, 194, 62, 0.12); font-size: 0.72rem; font-weight: 700;">
+                    <i class="fa-solid fa-circle fa-2xs me-1"></i> Active Ordering Session
+                </span>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <!-- Terminal Badge -->
+                <div class="d-flex align-items-center text-secondary small fw-semibold">
+                    <i class="fa-solid fa-desktop me-2" style="color: #008AB2;"></i>
+                    <span>Terminal:</span>
+                    <strong class="text-dark ms-1">@(Session["Terminal"] ?? "Unknown")</strong>
+                </div>
+                <span class="text-muted d-none d-sm-inline">|</span>
+                <!-- Staff / Cashier User Badge -->
+                <div class="d-flex align-items-center text-secondary small fw-semibold">
+                    <i class="fa-solid fa-user-tie me-2" style="color: #73C23E;"></i>
+                    <span>Staff:</span>
+                    <strong class="text-dark ms-1">@(Session["StaffUser"] ?? "Unknown")</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Date & Time Display -->
+        <div class="d-flex align-items-center mt-2 mt-sm-0">
+            <div class="px-3 py-2 bg-light rounded-pill border shadow-sm d-flex align-items-center">
+                <i class="fa-regular fa-clock me-2" style="color: #008AB2;"></i>
+                <span id="liveDateTime" class="fw-bold text-dark" style="font-size: 0.85rem; letter-spacing: 0.3px;">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main POS Grid Container -->
+    <div class="row g-3">
+
+        <!-- LEFT: Item Groups & Menu Items Catalog -->
+        <div class="col-lg-7 col-xl-8">
+
+            <!-- Item Group Filter Pills -->
+            <div class="mb-3 overflow-auto pb-2" style="white-space: nowrap;">
+                <button type="button" class="btn group-filter-btn active px-4 py-2 rounded-pill fw-semibold shadow-sm me-2" data-groupid="all" style="background-color: #008AB2; color: white; border: none; font-size: 0.9rem; transition: all 0.2s;">
+                    <i class="fa-solid fa-border-all me-1"></i> All Items
+                </button>
+
+                @if (itemGroups != null)
+                {
+                    foreach (var group in itemGroups)
+                    {
+                        <button type="button" class="btn group-filter-btn px-4 py-2 rounded-pill fw-semibold shadow-sm me-2 bg-white text-dark border" data-groupid="@group.Id" style="transition: all 0.2s; font-size: 0.9rem;">
+                            @group.ItemGroup
+                        </button>
+                    }
+                }
+            </div>
+
+            <!-- Menu Items Grid -->
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-xl-3 row-cols-xxl-4 g-3" id="menuItemsContainer" style="max-height: 76vh; overflow-y: auto; padding-right: 6px;">
+                @if (items != null && items.Any())
+                {
+                    foreach (var item in items)
+                    {
+                        var groupMapping = itemGroupItems != null ? itemGroupItems.FirstOrDefault(x => x.ItemId == item.Id) : null;
+                        var groupId = groupMapping != null ? groupMapping.ItemGroupId : 0;
+
+                        <div class="col menu-item-card" data-groupid="@groupId">
+                            <div class="card h-100 shadow-sm border-0 menu-card rounded-4 p-3 text-center d-flex flex-column justify-content-between bg-white" style="cursor: pointer; transition: all 0.2s ease-in-out;">
+                                <div>
+                                    <div class="mx-auto rounded-3 d-flex align-items-center justify-content-center mb-3 overflow-hidden shadow-sm" style="width: 60px; height: 60px; background: rgba(0, 138, 178, 0.08);">
+                                        <img src="~/Content/Images/food.png" alt="@item.Alias" style="width: 45px; height: 45px; object-fit: contain;" />
+                                    </div>
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.92rem; line-height: 1.3;" title="@item.Alias">@item.Alias</h6>
+                                    <p class="mb-0 fw-bold" style="color: #73C23E !important; font-size: 0.9rem;">₱ @item.Price.ToString("N2")</p>
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-sm w-100 fw-bold rounded-pill text-white shadow-sm add-to-cart-btn py-2" style="background: linear-gradient(135deg, #008AB2 0%, #006080 100%); font-size: 0.82rem;" data-id="@item.Id" data-name="@item.Alias" data-price="@item.Price">
+                                        <i class="fa-solid fa-plus me-1"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center py-5">
+                        <div class="p-5 bg-white rounded-4 shadow-sm border">
+                            <i class="fa-solid fa-plate-wheat fa-3x text-muted mb-3"></i>
+                            <h5 class="fw-bold text-dark">No Menu Items Found</h5>
+                            <p class="text-muted small mb-0">Palihug i-add ang imong mga menu items sa database.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR: Expanded Active Order Cart & Summary -->
+        <div class="col-lg-5 col-xl-4">
+            <div class="card shadow-sm border-0 rounded-4 bg-white d-flex flex-column" style="height: 82vh;">
+                <!-- Cart Header -->
+                <div class="px-4 py-3 border-bottom bg-white rounded-top-4">
+                    <!-- Row 1: Cart Title & Item Count Badge -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-dark mb-0" style="font-size: 1.05rem;">
+                            <i class="fa-solid fa-cart-shopping me-2" style="color: #008AB2;"></i> Current Order
+                        </h5>
+                        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-3 py-1.5 rounded-pill" id="cartCountBadge" style="font-size: 0.8rem;">0 items</span>
+                    </div>
+
+                    <!-- Order Meta Details (Per Row Stack) -->
+                    <div class="pt-2 border-top d-flex flex-column gap-2" style="font-size: 0.82rem;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-semibold" style="font-size: 0.75rem;">ORDER NO:</span>
+                            <strong class="text-dark font-monospace">@activeSale.SalesNumber</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-semibold" style="font-size: 0.75rem;">ORDER DATE:</span>
+                            <span class="text-dark">@Convert.ToDateTime(activeSale.SalesDate).ToString("MMM dd, yyyy hh:mm tt")</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-semibold" style="font-size: 0.75rem;">CUSTOMER:</span>
+                            <strong class="text-dark">@(activeSale.MstCustomer != null ? activeSale.MstCustomer.Customer : "Walk-in Customer")</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 text-muted" style="font-size: 0.88rem;">
+                            <span class="text-muted fw-semibold" style="font-size: 0.75rem;">TABLE REFERENCE:</span>
+                            <strong class="text-dark">#@table.TableCode</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Items List (Scrollable & Expanded Space) -->
+                <div class="card-body p-3 flex-grow-1 overflow-auto" id="cartItemsList">
+                    <div class="text-center text-muted py-5 my-auto" id="emptyCartState">
+                        <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-black-50 opacity-50"></i>
+                        <p class="mb-0 text-muted" style="font-size: 0.9rem;">No items added yet.<br>Click a menu item on the left to begin.</p>
+                    </div>
+                </div>
+
+                <!-- Cart Footer & Totals -->
+                <div class="p-3 px-4 border-top bg-light rounded-bottom-4">
+                    @*<div class="d-flex justify-content-between mb-1 text-muted" style="font-size: 0.88rem;">
+                        <span>Subtotal:</span>
+                        <span class="fw-bold text-dark" id="cartSubtotal">₱ 0.00</span>
+                    </div>*@
+                    @*<hr class="my-2">*@
+                    <div class="d-flex justify-content-between mb-3 align-items-center">
+                        <span class="fw-bold text-dark fs-6">Total Amount:</span>
+                        <strong class="fs-4 text-success" id="cartTotal">₱ 0.00</strong>
+                    </div>
+
+                    <div class="d-flex gap-2" id="cartActionButtons">
+                        @if (activeSale.IsLocked)
+                        {
+                            <button type="button" class="btn text-white fw-bold py-2.5 px-4 rounded-pill shadow-sm flex-grow-1 d-inline-flex align-items-center justify-content-center text-nowrap" style="background: linear-gradient(135deg, #73C23E 0%, #5ea82d 100%); font-size: 0.9rem;" id="btnUnlockOrder">
+                                <img src="@Url.Content("~/Content/Images/unlocked.png")" alt="Unlock" style="width: 20px; height: 20px; object-fit: contain; margin-right: 5px; vertical-align: middle;" /> Edit / Unlock Order
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-outline-danger fw-bold py-2.5 px-3 rounded-pill shadow-sm d-inline-flex align-items-center justify-content-center text-nowrap" style="font-size: 0.85rem;" id="btnClearCart" title="Clear Order">
+                                <img src="@Url.Content("~/Content/Images/delete.png")" alt="Delete All Items" style="width: 20px; height: 20px; object-fit: contain; margin-right: 5px; vertical-align: middle;" /> Clear Items
+                            </button>
+                            <button type="button" class="btn text-white fw-bold py-2.5 px-4 rounded-pill shadow-sm flex-grow-1 d-inline-flex align-items-center justify-content-center text-nowrap" style="background: linear-gradient(135deg, #73C23E 0%, #5ea82d 100%); font-size: 0.9rem;" id="btnLockOrder">
+                                <img src="@Url.Content("~/Content/Images/locked.png")" alt="Locked" style="width: 20px; height: 20px; object-fit: contain; margin-right: 6px; vertical-align: middle; " /> Confirm/Lock Order
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Script Block -->
+@section scripts {
+    <script>
+    const imagePath = '@Url.Content("~/Content/Images/")';
+    const salesId = @activeSale.Id;
+    const isOrderLocked = @Json.Encode(activeSale.IsLocked);
+
+    $(document).ready(function () {
+        // Day, Date & Time Clock
+        function updateClock() {
+            const now = new Date();
+            const dateOptions = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+            const formattedDate = now.toLocaleDateString('en-US', dateOptions);
+            const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+            $('#liveDateTime').text(formattedDate + ' | ' + formattedTime);
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Load Cart Items on Page Load
+        loadCartItems();
+
+        // Item Group Filtering Script
+        $('.group-filter-btn').click(function () {
+            $('.group-filter-btn').removeClass('active shadow').css({
+                'background-color': '#ffffff',
+                'color': '#212529',
+                'border': '1px solid #dee2e6'
+            });
+
+            $(this).addClass('active shadow').css({
+                'background-color': '#008AB2',
+                'color': '#ffffff',
+                'border': 'none'
+            });
+
+            var groupId = $(this).data('groupid');
+
+            if (groupId === 'all') {
+                $('.menu-item-card').fadeIn(200);
+            } else {
+                $('.menu-item-card').hide();
+                $('.menu-item-card[data-groupid="' + groupId + '"]').fadeIn(200);
+            }
+        });
+    });
+
+    function formatCurrency(amount) {
+        return amount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Apply Lock State UI (Disable buttons if locked)
+    function applyLockStateUI() {
+        if (isOrderLocked) {
+            $('.add-to-cart-btn').prop('disabled', true).addClass('opacity-50').css('cursor', 'not-allowed');
+            $('.remove-cart-item, .increase-qty, .decrease-qty').prop('disabled', true).addClass('opacity-50');
+        }
+    }
+
+   // Load Cart Items from Database via AJAX
+    function loadCartItems() {
+        $.ajax({
+            url: '@Url.Action("GetCartItems", "Order")',
+            type: 'GET',
+            data: { salesId: salesId },
+            success: function (response) {
+                if (response.success) {
+                    let $cartList = $('#cartItemsList');
+                    $cartList.empty();
+
+                    let cartItems = response.data;
+                    let subtotal = 0;
+                    let totalCount = 0;
+
+                    if (cartItems.length === 0) {
+                        $cartList.html(`
+                            <div class="text-center text-muted py-5 my-auto" id="emptyCartState">
+                                <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-black-50 opacity-50"></i>
+                                <p class="mb-0 text-muted" style="font-size: 0.9rem;">No items added yet.<br>Click a menu item on the left to begin.</p>
+                            </div>
+                        `);
+                        $('#cartSubtotal').text('₱ 0.00');
+                        $('#cartTotal').text('₱ 0.00');
+                        $('#cartCountBadge').text('0 items');
+                    } else {
+                        cartItems.forEach((item, index) => {
+                            let itemTotal = item.price * item.qty;
+                            subtotal += itemTotal;
+                            totalCount += item.qty;
+                            let prepHtml = item.preparation
+                                ? `<div class="text-danger fw-semibold small mt-1 d-flex justify-content-between align-items-center" style="font-size: 0.78rem;">
+                                   <span><i class="fa-solid fa-note-sticky me-1"></i>Note: ${item.preparation}</span>
+                                   <button class="btn btn-link text-primary p-0 text-decoration-none edit-preparation-btn ${isOrderLocked ? 'disabled' : ''}" data-line-id="${item.lineId}" data-current-prep="${item.preparation}" style="font-size: 0.85rem;" ${isOrderLocked ? 'disabled' : ''}>Edit Note</button>
+                               </div>`
+                                                        : `<div class="mt-1">
+                                   <button class="btn btn-link text-muted p-0 text-decoration-none edit-preparation-btn ${isOrderLocked ? 'disabled' : ''}" data-line-id="${item.lineId}" data-current-prep="" style="font-size: 0.85rem;" ${isOrderLocked ? 'disabled' : ''}>+ Add Note/Remarks</button>
+                               </div>`;
+                            let rowHtml = `
+                                <div class="p-3 mb-2 rounded-3 border bg-light shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.95rem; max-width: 200px;" title="${item.name}">${item.name}</h6>
+
+                                        <!-- Remove Button -->
+                                        <button class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center remove-cart-item p-0 ${isOrderLocked ? 'disabled opacity-50' : ''}" data-line-id="${item.lineId}" title="Remove item" style="width: 36px; height: 36px;" ${isOrderLocked ? 'disabled' : ''}>
+                                            <img src="${imagePath}delete.png" alt="Delete" style="width: 30px; height: 30px; object-fit: contain;" />
+                                        </button>
+                                    </div>
+                                     <br/>
+                                    ${prepHtml}
+                                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.82rem;">₱ ${formatCurrency(item.price)} each</span>
+
+                                        <div class="d-flex align-items-center gap-2">
+                                            <!-- Quantity Stepper Controls -->
+                                            <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                                <button type="button" class="btn btn-outline-secondary border-0 decrease-qty px-2.5 py-1 d-flex align-items-center justify-content-center ${isOrderLocked ? 'disabled' : ''}" data-line-id="${item.lineId}" style="border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem;" ${isOrderLocked ? 'disabled' : ''}>
+                                                    <img src="${imagePath}minus.png" alt="Decrease" style="width: 20px; height: 20px; object-fit: contain;" />
+                                                </button>
+                                                <span class="btn btn-white border border-0 fw-bold px-3 disabled text-dark d-flex align-items-center" style="opacity: 1; font-size: 0.9rem; background-color: #fff;">${item.qty}</span>
+                                                <button type="button" class="btn btn-outline-secondary border-0 increase-qty px-2.5 py-1 d-flex align-items-center justify-content-center ${isOrderLocked ? 'disabled' : ''}" data-line-id="${item.lineId}" style="border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem;" ${isOrderLocked ? 'disabled' : ''}>
+                                                    <img src="${imagePath}plus.png" alt="Increase" style="width: 20px; height: 20px; object-fit: contain;" />
+                                                </button>
+                                            </div>
+
+                                            <!-- Item Total Amount -->
+                                            <span class="fw-bold text-success text-end" style="min-width: 85px; font-size: 0.95rem;">₱ ${formatCurrency(itemTotal)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            $cartList.append(rowHtml);
+                        });
+
+                        $('#cartCountBadge').text(totalCount + (totalCount === 1 ? ' item' : ' items'));
+                        $('#cartSubtotal').text('₱ ' + formatCurrency(subtotal));
+                        $('#cartTotal').text('₱ ' + formatCurrency(subtotal));
+                    }
+
+                    if (isOrderLocked) {
+                        applyLockStateUI();
+                    }
+                }
+            }
+        });
+    }
+
+    // Add Item to Cart Click Event
+    $(document).on('click', '.add-to-cart-btn', function (e) {
+        e.preventDefault();
+        if (isOrderLocked) return;
+
+        let $btn = $(this);
+        let itemId = $btn.data('id');
+        let itemName = $btn.data('name');
+        let price = parseFloat($btn.data('price'));
+
+        Swal.fire({
+            title: `<div style="color: #2c3e50; font-weight: 700; font-size: 1.35rem; margin-bottom: 5px;">Add "${itemName}"</div>`,
+            html: '<p class="text-muted small mb-3" style="font-size: 0.95rem;">Add any special instructions, allergies, or remarks for this order item.</p>',
+            input: 'text',
+            inputPlaceholder: 'e.g. Less spicy, No onions, Allergic to peanuts...',
+            inputAttributes: {
+                autocapitalize: 'off',
+                autocomplete: 'off',
+                style: 'width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-radius: 12px; padding: 14px 18px !important; border: 2px solid #94a3b8; font-size: 1.05rem; font-weight: 500; color: #1e293b; background-color: #f8fafc; box-shadow: none;'
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#008AB2',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fa-solid fa-check me-1"></i> Add to Cart',
+            cancelButtonText: 'Cancel',
+            buttonsStyling: true,
+            customClass: {
+                popup: 'rounded-4 shadow-lg border-0 p-4',
+                confirmButton: 'rounded-pill px-4 py-2.5 fw-bold shadow-sm',
+                cancelButton: 'rounded-pill px-4 py-2.5 fw-bold shadow-sm',
+                input: 'w-100 mx-0'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let preparation = result.value || "";
+
+                $.ajax({
+                    url: '@Url.Action("AddItemToCart", "Order")',
+                    type: 'POST',
+                    data: {
+                        salesId: salesId,
+                        itemId: itemId,
+                        quantity: 1,
+                        price: price,
+                        preparation: preparation
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            loadCartItems();
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Oops...', text: response.message });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({ icon: 'error', title: 'Server Error', text: 'Failed to add item to cart.' });
+                    }
+                });
+            }
+        });
+    });
+
+    // Increase Quantity
+    $(document).on('click', '.increase-qty', function () {
+        if (isOrderLocked) return;
+        let lineId = $(this).data('line-id');
+
+        $.ajax({
+            url: '@Url.Action("IncreaseQuantity", "Order")',
+            type: 'POST',
+            data: { lineId: lineId },
+            success: function (response) {
+                if (response.success) {
+                    loadCartItems();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Oops...', text: response.message });
+                }
+            },
+            error: function () {
+                Swal.fire({ icon: 'error', title: 'Server Error', text: 'Failed to update quantity.' });
+            }
+        });
+    });
+
+    // Decrease Quantity
+    $(document).on('click', '.decrease-qty', function () {
+        if (isOrderLocked) return;
+        let lineId = $(this).data('line-id');
+
+        $.ajax({
+            url: '@Url.Action("DecreaseQuantity", "Order")',
+            type: 'POST',
+            data: { lineId: lineId },
+            success: function (response) {
+                if (response.success) {
+                    loadCartItems();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Oops...', text: response.message });
+                }
+            },
+            error: function () {
+                Swal.fire({ icon: 'error', title: 'Server Error', text: 'Failed to update quantity.' });
+            }
+        });
+    });
+
+    // Remove Cart Item via AJAX with SweetAlert2 Confirmation
+    $(document).on('click', '.remove-cart-item', function () {
+        if (isOrderLocked) return;
+        let lineId = $(this).data('line-id');
+
+        Swal.fire({
+            title: '<span style="color: #2c3e50; font-weight: 700;">Remove Item?</span>',
+            html: '<p class="text-muted small">Are you sure you want to remove this item from the cart?</p>',
+            icon: 'warning',
+            iconColor: '#dc3545',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, remove it',
+            cancelButtonText: 'Cancel',
+            customClass: { popup: 'rounded-4 shadow-lg border-0' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '@Url.Action("RemoveCartItem", "Order")',
+                    type: 'POST',
+                    data: { lineId: lineId },
+                    success: function (response) {
+                        if (response.success) {
+                            loadCartItems();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Server Error',
+                            text: 'Failed to remove item.'
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    // Clear Cart Items via AJAX with SweetAlert2 Confirmation
+    $('#btnClearCart').click(function () {
+        if (isOrderLocked) return;
+
+        $.ajax({
+            url: '@Url.Action("GetCartItems", "Order")',
+            type: 'GET',
+            data: { salesId: salesId },
+            success: function (response) {
+                if (response.success && response.data.length > 0) {
+                    Swal.fire({
+                        title: '<span style="color: #2c3e50; font-weight: 700;">Clear All Items?</span>',
+                        html: '<p class="text-muted small">Are you sure you want to remove all items from this order cart?</p>',
+                        icon: 'warning',
+                        iconColor: '#dc3545',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, clear all',
+                        cancelButtonText: 'Cancel',
+                        customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '@Url.Action("ClearCart", "Order")',
+                                type: 'POST',
+                                data: { salesId: salesId },
+                                success: function (res) {
+                                    if (res.success) {
+                                        loadCartItems();
+                                    } else {
+                                        Swal.fire({ icon: 'error', title: 'Oops...', text: res.message });
+                                    }
+                                },
+                                error: function () {
+                                    Swal.fire({ icon: 'error', title: 'Server Error', text: 'Failed to clear cart.' });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Empty Cart',
+                        text: 'There are no items in the cart to clear.',
+                        icon: 'info',
+                        confirmButtonColor: '#008AB2',
+                        customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                    });
+                }
+            }
+        });
+    });
+
+    // Confirm / Lock Order Click Event
+    $(document).on('click', '#btnLockOrder', function () {
+        Swal.fire({
+            title: '<span style="color: #2c3e50; font-weight: 700;">Lock Order?</span>',
+            html: '<p class="text-muted small">Are you sure you want to lock this order? Items will no longer be editable unless unlocked.</p>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#73C23E',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, lock it',
+            customClass: { popup: 'rounded-4 shadow-lg border-0' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '@Url.Action("ConfirmLockOrder", "Order")',
+                    type: 'POST',
+                    data: { salesId: salesId },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Locked!',
+                                text: 'Order has been successfully locked.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Oops...', text: response.message });
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+    // Edit / Unlock Order Click Event
+    $(document).on('click', '#btnUnlockOrder', function () {
+        Swal.fire({
+            title: '<span style="color: #2c3e50; font-weight: 700;">Unlock Order?</span>',
+            html: '<p class="text-muted small">Do you want to unlock this order to make changes to the cart items?</p>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#73C23E',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, unlock it',
+            customClass: { popup: 'rounded-4 shadow-lg border-0' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '@Url.Action("UnlockOrder", "Order")',
+                    type: 'POST',
+                    data: { salesId: salesId },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Unlocked!',
+                                text: 'Order is now editable.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Oops...', text: response.message });
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+    // Back to Orders Confirmation
+    $(document).on('click', '#btnBackToOrders', function (e) {
+        e.preventDefault();
+        Swal.fire({
+            title: '<span style="color: #2c3e50; font-weight: 700;">Return to Orders?</span>',
+            html: '<p class="text-muted small">Are you sure you want to go back? Make sure your current orders are saved.</p>',
+            icon: 'warning',
+            iconColor: '#dc3545',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, go back',
+            cancelButtonText: 'Stay here',
+            customClass: { popup: 'rounded-4 shadow-lg border-0' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '@Url.Action("Index", "Order")';
+            }
+        });
+    });
+
+    $(document).on('click', '.edit-preparation-btn', function (e) {
+    e.preventDefault();
+    if (isOrderLocked) return;
+
+    let $btn = $(this);
+    let lineId = $btn.data('line-id');
+    let currentPrep = $btn.data('current-prep') || "";
+
+    Swal.fire({
+        title: '<div style="color: #2c3e50; font-weight: 700; font-size: 1.25rem; margin-bottom: 5px;">Update Order Note</div>',
+        html: '<p class="text-muted small mb-3" style="font-size: 0.95rem;">Modify special instructions, allergies, or remarks for this item.</p>',
+        input: 'text',
+        inputValue: currentPrep,
+        inputPlaceholder: 'e.g. Less spicy, No onions, Allergic to peanuts...',
+        inputAttributes: {
+            autocapitalize: 'off',
+            autocomplete: 'off',
+            style: 'width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-radius: 12px; padding: 14px 18px !important; border: 2px solid #94a3b8; font-size: 1.05rem; font-weight: 500; color: #1e293b; background-color: #f8fafc; box-shadow: none;'
+        },
+        showCancelButton: true,
+        confirmButtonColor: '#008AB2',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fa-solid fa-check me-1"></i> Update Note',
+        cancelButtonText: 'Cancel',
+        buttonsStyling: true,
+        customClass: {
+            popup: 'rounded-4 shadow-lg border-0 p-4',
+            confirmButton: 'rounded-pill px-4 py-2.5 fw-bold shadow-sm',
+            cancelButton: 'rounded-pill px-4 py-2.5 fw-bold shadow-sm',
+            input: 'w-100 mx-0'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let preparation = result.value || "";
+
+            $.ajax({
+                url: '@Url.Action("UpdatePreparation", "Order")',
+                type: 'POST',
+                data: {
+                    lineId: lineId,
+                    preparation: preparation
+                },
+                success: function (response) {
+                    if (response.success) {
+                        loadCartItems(); // I-reload ang cart para makita dayon ang kausaban
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Oops...', text: response.message });
+                    }
+                },
+                error: function () {
+                    Swal.fire({ icon: 'error', title: 'Server Error', text: 'Failed to update preparation note.' });
+                }
+            });
+        }
+    });
+});
+    </script>
+}
+
+<style>
+    .menu-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0.75rem 2rem rgba(0, 138, 178, 0.15) !important;
+        border-color: rgba(0, 138, 178, 0.3) !important;
+    }
+
+    .btn-white {
+        background-color: #ffffff;
+        color: #212529;
+    }
+
+        .btn-white:hover {
+            background-color: #f1f5f9;
+        }
+</style>

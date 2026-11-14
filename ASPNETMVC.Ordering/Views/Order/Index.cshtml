@@ -51,7 +51,7 @@
             </div>
 
             <!-- Sign-out Button -->
-            <a href="@Url.Action("Index", "Login")" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold text-nowrap shadow-sm">
+            <a href="@Url.Action("SignOut", "Login")" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold text-nowrap shadow-sm">
                 <i class="fa-solid fa-right-from-bracket me-1"></i> Sign out
             </a>
         </div>
@@ -69,8 +69,9 @@
             {
                 foreach (var group in tableGroups)
                 {
-                    <button type="button" class="btn group-tab-btn px-4 py-2 rounded-pill fw-semibold shadow-sm bg-white text-dark border" data-group="@group.Id" style="transition: all 0.2s;">
-                        @group.TableGroup <!-- Ilisi og .Description o .Name depende sa imong column -->
+                    <!-- Gikuha ang bg-white text-dark border aron dili mo-block sa styling -->
+                    <button type="button" class="btn group-tab-btn px-4 py-2 rounded-pill fw-semibold shadow-sm" data-group="@group.Id" style="background-color: #ffffff; color: #212529; border: 1px solid #dee2e6; transition: all 0.2s;">
+                        @group.TableGroup
                     </button>
                 }
             }
@@ -143,6 +144,7 @@
 @section scripts {
     <script>
         $(document).ready(function () {
+            // 1. Live Clock Function
             function updateLiveClock() {
                 const now = new Date();
                 const options = {
@@ -161,7 +163,8 @@
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
 
-            $('.group-tab-btn').click(function () {
+            // 2. Table Group Tabs Filtering (Gamit ang delegated event aron mas luwas)
+            $(document).on('click', '.group-tab-btn', function () {
                 $('.group-tab-btn').removeClass('active shadow').css({
                     'background-color': '#ffffff',
                     'color': '#212529',
@@ -183,115 +186,116 @@
                     $('.table-card-item[data-groupid="' + selectedGroup + '"]').fadeIn(200);
                 }
             });
-        });
-       // Click handler para sa Available Tables (Agi sa CreateNewSale sa dili pa muadto sa OrderDetail)
-        $(document).on('click', '.btn-select-table', function (e) {
-            e.preventDefault();
-            var tableCode = $(this).data('tablecode');
-            var tableId = $(this).data('tableid');
 
-            Swal.fire({
-                title: '<span style="color: #2c3e50; font-weight: 700;">Table ' + tableCode + '</span>',
-                html: '<p class="text-muted small">Would you like to start taking an order for this table?</p>',
-                icon: 'question',
-                iconColor: '#008AB2',
-                showCloseButton: true,      // <-- Naa na nay X sa ibabaw
-                showCancelButton: false,    // <-- Giatras ang cancel button sa ubos
-                confirmButtonColor: '#73C23E',
-                confirmButtonText: '<i class="fa-solid fa-cart-plus me-1"></i> Take Order',
-                background: '#ffffff',
-                customClass: {
-                    popup: 'rounded-4 shadow-lg border-0'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '@Url.Action("CreateNewSale", "Order")',
-                        type: 'POST',
-                        data: { tableId: tableId },
-                        success: function (response) {
-                            if (response.success) {
-                                window.location.href = '@Url.Action("OrderDetail", "Order")?tableId=' + tableId + '&salesId=' + response.salesId;
-                            } else {
-                                Swal.fire('Error', response.message, 'error');
-                            }
-                        },
-                        error: function () {
-                            Swal.fire('Error', 'An error occurred while creating the sales record.', 'error');
-                        }
-                    });
-                }
-            });
-        });
+            // 3. Click handler para sa Available Tables (CreateNewSale una moadto sa OrderDetail)
+            $(document).on('click', '.btn-select-table', function (e) {
+                e.preventDefault();
+                var tableCode = $(this).data('tablecode');
+                var tableId = $(this).data('tableid');
 
-        // Click handler para sa Occupied Tables (Diretso dayon sa OrderDetail uban ang active salesId)
-       $(document).on('click', '.btn-occupied-alert', function (e) {
-            e.preventDefault();
-            var tableCode = $(this).data('tablecode');
-            var tableId = $(this).data('tableid');
-            var salesId = $(this).data('salesid');
-
-            Swal.fire({
-                title: '<span style="color: #2c3e50; font-weight: 700;">Table ' + tableCode + ' is Occupied</span>',
-                html: '<p class="text-muted small mb-3">This table already has an active order. What would you like to do?</p>' +
-                      '<div class="d-grid gap-2 px-4">' +
-                      '  <button id="swalBtnView" class="btn text-white fw-bold py-2 rounded-pill shadow-sm" style="background-color: #008AB2;"><i class="fa-solid fa-eye me-1"></i> View Order</button>' +
-                      '  <button id="swalBtnCancelOrder" class="btn btn-outline-danger fw-bold py-2 rounded-pill shadow-sm"><i class="fa-solid fa-ban me-1"></i> Cancel Order</button>' +
-                      '</div>',
-                icon: 'warning',
-                iconColor: '#dc3545',
-                showCloseButton: true,      // <-- X button sa ibabaw
-                showConfirmButton: false,   // <-- Gi-off nato ang default confirm button kay naay custom buttons sa sulod sa html
-                showCancelButton: false,
-                background: '#ffffff',
-                customClass: {
-                    popup: 'rounded-4 shadow-lg border-0'
-                }
-            });
-
-            // Event listener para sa "View Order" button sa sulod sa SweetAlert
-            $(document).off('click', '#swalBtnView').on('click', '#swalBtnView', function () {
-                window.location.href = '@Url.Action("OrderDetail", "Order")?tableId=' + tableId + (salesId ? '&salesId=' + salesId : '');
-            });
-
-            // Event listener para sa "Cancel Order" button (Mo-delete sa TrnSale record)
-            $(document).off('click', '#swalBtnCancelOrder').on('click', '#swalBtnCancelOrder', function () {
                 Swal.fire({
-                    title: '<span style="color: #2c3e50; font-weight: 700;">Cancel This Order?</span>',
-                    html: '<p class="text-muted small">Are you sure you want to cancel and delete the active order for Table ' + tableCode + '?</p>',
-                    icon: 'warning',
-                    iconColor: '#dc3545',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, cancel order',
-                    customClass: { popup: 'rounded-4 shadow-lg border-0' }
-                }).then((confirmResult) => {
-                    if (confirmResult.isConfirmed) {
+                    title: '<span style="color: #2c3e50; font-weight: 700;">Table ' + tableCode + '</span>',
+                    html: '<p class="text-muted small">Would you like to start taking an order for this table?</p>',
+                    icon: 'question',
+                    iconColor: '#008AB2',
+                    showCloseButton: true,
+                    showCancelButton: false,
+                    confirmButtonColor: '#73C23E',
+                    confirmButtonText: '<i class="fa-solid fa-cart-plus me-1"></i> Take Order',
+                    background: '#ffffff',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg border-0'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
                         $.ajax({
-                            url: '@Url.Action("CancelSale", "Order")',
+                            url: '@Url.Action("CreateNewSale", "Order")',
                             type: 'POST',
-                            data: { salesId: salesId },
+                            data: { tableId: tableId },
                             success: function (response) {
                                 if (response.success) {
-                                    Swal.fire({
-                                        title: 'Cancelled!',
-                                        text: response.message,
-                                        icon: 'success',
-                                        confirmButtonColor: '#73C23E',
-                                        customClass: { popup: 'rounded-4 shadow-lg border-0' }
-                                    }).then(() => {
-                                        location.reload(); // Mo-refresh ang pahina human ma-delete
-                                    });
+                                    window.location.href = '@Url.Action("OrderDetail", "Order")?tableId=' + tableId + '&salesId=' + response.salesId;
                                 } else {
                                     Swal.fire('Error', response.message, 'error');
                                 }
                             },
                             error: function () {
-                                Swal.fire('Error', 'An error occurred while cancelling the order.', 'error');
+                                Swal.fire('Error', 'An error occurred while creating the sales record.', 'error');
                             }
                         });
                     }
+                });
+            });
+
+            // 4. Click handler para sa Occupied Tables (View Order o Cancel Order)
+            $(document).on('click', '.btn-occupied-alert', function (e) {
+                e.preventDefault();
+                var tableCode = $(this).data('tablecode');
+                var tableId = $(this).data('tableid');
+                var salesId = $(this).data('salesid');
+
+                Swal.fire({
+                    title: '<span style="color: #2c3e50; font-weight: 700;">Table ' + tableCode + ' is Occupied</span>',
+                    html: '<p class="text-muted small mb-3">This table already has an active order. What would you like to do?</p>' +
+                          '<div class="d-grid gap-2 px-4">' +
+                          '  <button id="swalBtnView" class="btn text-white fw-bold py-2 rounded-pill shadow-sm" style="background-color: #008AB2;"><i class="fa-solid fa-eye me-1"></i> View Order</button>' +
+                          '  <button id="swalBtnCancelOrder" class="btn btn-outline-danger fw-bold py-2 rounded-pill shadow-sm"><i class="fa-solid fa-ban me-1"></i> Cancel Order</button>' +
+                          '</div>',
+                    icon: 'warning',
+                    iconColor: '#dc3545',
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    showCancelButton: false,
+                    background: '#ffffff',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg border-0'
+                    }
+                });
+
+                // Event listener para sa "View Order" button sa sulod sa SweetAlert
+                $(document).off('click', '#swalBtnView').on('click', '#swalBtnView', function () {
+                    window.location.href = '@Url.Action("OrderDetail", "Order")?tableId=' + tableId + (salesId ? '&salesId=' + salesId : '');
+                });
+
+                // Event listener para sa "Cancel Order" button
+                $(document).off('click', '#swalBtnCancelOrder').on('click', '#swalBtnCancelOrder', function () {
+                    Swal.fire({
+                        title: '<span style="color: #2c3e50; font-weight: 700;">Cancel This Order?</span>',
+                        html: '<p class="text-muted small">Are you sure you want to cancel and delete the active order for Table ' + tableCode + '?</p>',
+                        icon: 'warning',
+                        iconColor: '#dc3545',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Yes, cancel order',
+                        customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                    }).then((confirmResult) => {
+                        if (confirmResult.isConfirmed) {
+                            $.ajax({
+                                url: '@Url.Action("CancelSale", "Order")',
+                                type: 'POST',
+                                data: { salesId: salesId },
+                                success: function (response) {
+                                    if (response.success) {
+                                        Swal.fire({
+                                            title: 'Cancelled!',
+                                            text: response.message,
+                                            icon: 'success',
+                                            confirmButtonColor: '#73C23E',
+                                            customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                                        }).then(() => {
+                                            location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire('Error', response.message, 'error');
+                                    }
+                                },
+                                error: function () {
+                                    Swal.fire('Error', 'An error occurred while cancelling the order.', 'error');
+                                }
+                            });
+                        }
+                    });
                 });
             });
         });

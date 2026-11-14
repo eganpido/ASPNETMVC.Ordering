@@ -11,12 +11,18 @@ using System.Web.Mvc;
 
 namespace ASPNETMVC.Ordering.Controllers
 {
+    [PreventCaching]
+    [Authorize]
     public class OrderController : Controller
     {
         private readonly OrderingDataContext db = new OrderingDataContext(ConfigurationManager.ConnectionStrings["liteclerk_orderingConnectionString"].ConnectionString);
 
         public ActionResult Index()
         {
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetExpires(DateTime.UtcNow.AddHours(-1));
+            Response.Cache.SetNoStore();
+
             var tableGroups = db.MstTableGroups.ToList();
             var tables = db.MstTables.ToList();
 
@@ -109,7 +115,7 @@ namespace ASPNETMVC.Ordering.Controllers
                 int terminalId = Session["TerminalId"] != null ? Convert.ToInt32(Session["TerminalId"]) : 1;
                 var terminal = db.MstTerminals.Where(s => s.Id == terminalId).FirstOrDefault();
                 var period = db.MstPeriods.FirstOrDefault();
-                var customer= db.MstPeriods.FirstOrDefault();
+                var customer= db.MstCustomers.FirstOrDefault();
 
                 string salesNumber = "0000000001";
 
@@ -146,7 +152,7 @@ namespace ASPNETMVC.Ordering.Controllers
                     Amount = 0,
                     TableId = tableId,
                     TableStatus = 0,
-                    CustomerId = 5579,
+                    CustomerId = customer.Id,
                     AccountId = 64,
                     TermId = 7,
                     DiscountId = null,
@@ -311,6 +317,8 @@ namespace ASPNETMVC.Ordering.Controllers
                 else
                 {
                     var item = db.MstItems.FirstOrDefault(i => i.Id == itemId);
+                    var itemGroupMapping = db.MstItemGroupItems.FirstOrDefault(ig => ig.ItemId == itemId);
+                    int? itemGroupId = itemGroupMapping != null ? (int?)itemGroupMapping.ItemGroupId : null;
                     var newLine = new TrnSalesLine
                     {
                         SalesId = salesId,
@@ -342,7 +350,7 @@ namespace ASPNETMVC.Ordering.Controllers
                         PriceSplitPercentage = 0,
                         BodegaItemQty = 0,
                         BodegaLocation = "",
-                        ItemGroupId = null,
+                        ItemGroupId = itemGroupId,
                         ItemTaxId = item.OutTaxId
                     };
                     db.TrnSalesLines.InsertOnSubmit(newLine);

@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Liteclerk POS Ordering</title>
+
+    <!-- Browser Tab Icon / Favicon -->
+    <link rel="icon" href="~/Content/Images/liteclerkicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="~/Content/Images/liteclerkicon.ico" type="image/x-icon" />
+
+    <!-- Direct CSS links -->
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    <link href="~/Content/site.css" rel="stylesheet" />
+
+    <style>
+        /* Natural nga scroll para sa tanang pages (Home, Login, etc.) */
+        html, body {
+            height: 100%;
+            margin: 0;
+            background-color: #fcfcfc;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Ang content area mo-expand aron itulod ang footer sa saktong lugar */
+        .page-content-wrapper {
+            flex: 1 0 auto;
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+
+        /* Footer magpabilin sa ilalom sa content o sa pinakaubos sa screen */
+        footer {
+            flex-shrink: 0;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e5e5e5;
+            padding: 15px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <div class="navbar navbar-inverse navbar-fixed-top" style="position: relative;">
+        <div class="container">
+            <div class="navbar-header">
+                <!-- Logo Action Link -->
+                <a class="navbar-brand py-0 d-flex align-items-center" href="@Url.Action("Index", "Home")" style="padding-top: 5px; padding-bottom: 5px;">
+                    <img src="~/Content/Images/liteclerklogo.png" alt="Liteclerk POS" style="height: 35px; width: auto; object-fit: contain;" />
+                </a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper (Masigo sa tunga sa screen) -->
+    <div class="container page-content-wrapper">
+        <div class="w-100">
+            @RenderBody()
+        </div>
+    </div>
+
+    <!-- Footer (Naa gyud sa pinakaubos nga walay kinahanglan i-scroll) -->
+    <footer>
+        <div class="container">
+            <p class="text-muted m-0" style="font-size: 0.85rem;">&copy; @DateTime.UtcNow.Year - Liteclerk POS Ordering v1.0.0</p>
+        </div>
+    </footer>
+
+    <!-- Direct Script tags -->
+    <script src="~/Scripts/jquery-3.7.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.js"></script>
+    <script src="@Url.Content("~/Scripts/sweetalert2.all.min.js")"></script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

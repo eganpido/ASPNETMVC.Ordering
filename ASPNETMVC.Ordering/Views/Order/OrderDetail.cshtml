@@ -61,6 +61,7 @@
 
             <!-- Item Group Filter Pills -->
             <div class="mb-3 overflow-auto pb-2" style="white-space: nowrap;">
+                <!-- "All Items" Default Button -->
                 <button type="button" class="btn group-filter-btn active px-4 py-2 rounded-pill fw-semibold shadow-sm me-2" data-groupid="all" style="background-color: #008AB2; color: white; border: none; font-size: 0.9rem; transition: all 0.2s;">
                     <i class="fa-solid fa-border-all me-1"></i> All Items
                 </button>
@@ -69,7 +70,8 @@
                 {
                     foreach (var group in itemGroups)
                     {
-                        <button type="button" class="btn group-filter-btn px-4 py-2 rounded-pill fw-semibold shadow-sm me-2 bg-white text-dark border" data-groupid="@group.Id" style="transition: all 0.2s; font-size: 0.9rem;">
+                        <!-- Gikuha ang bg-white text-dark border, gibutangan og direct style -->
+                        <button type="button" class="btn group-filter-btn px-4 py-2 rounded-pill fw-semibold shadow-sm me-2" data-groupid="@group.Id" style="background-color: #ffffff; color: #212529; border: 1px solid #dee2e6; font-size: 0.9rem; transition: all 0.2s;">
                             @group.ItemGroup
                         </button>
                     }
@@ -240,6 +242,32 @@
                 $('.menu-item-card[data-groupid="' + groupId + '"]').fadeIn(200);
             }
         });
+    });
+
+    $(document).on('click', '.group-filter-btn', function () {
+        // 1. I-reset ang tanan nga buttons ngadto sa inactive state (Puti)
+        $('.group-filter-btn').removeClass('active shadow').css({
+            'background-color': '#ffffff',
+            'color': '#212529',
+            'border': '1px solid #dee2e6'
+        });
+
+        // 2. I-apply ang active state sa gi-click nga button (Blue)
+        $(this).addClass('active shadow').css({
+            'background-color': '#008AB2',
+            'color': '#ffffff',
+            'border': 'none'
+        });
+
+        var selectedGroup = $(this).data('groupid');
+
+        // 3. Filtering logic para sa mga items (Ilisi ang .item-card-item sa saktong class sa imong item cards)
+        if (selectedGroup === 'all') {
+            $('.item-card-item').fadeIn(200);
+        } else {
+            $('.item-card-item').hide();
+            $('.item-card-item[data-groupid="' + selectedGroup + '"]').fadeIn(200);
+        }
     });
 
     function formatCurrency(amount) {
